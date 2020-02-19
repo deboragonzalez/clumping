@@ -1,21 +1,30 @@
 ---
-title: "Gender Clumping in Gov 1006"
-author: "David Kane"
-date: "2/12/2020"
+title: "Class 2020-02-19"
+author: "Debi Gonzalez"
+date: "2/19/2020"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(ggthemes)
 ```
 
-Do students clump by gender in Gov 1006? 
 
-Let's ignore the table with all graduate students, since this will never clump. Let's ignore the table with two graduate students. (It is always a good idea to make the initial version of a simulation as simple as possible.) There are 30 remaining students: 16 men and 14 women. Our null model is that they sit down randomly. We can ignore the last two students since they are, by assumption, sitting at the table with 2 graduate students. This leaves us with 28 students (chosen randomly from the 30 undergraduates) sitting at 7 tables of 4 students each.
+### Class Notes
 
-Define a "clump" as a table of four, all of the same gender. (Other definitions of clumping are possible. One aspect of data science is going from a verbal description to a mathematical formulation.) In class on February 12th, there were three such tables. Is that surprising? Is it evidence of clumping? If students sat randomly, how unusual would it be to see three single-gender tables?
+Regression to the mean?
 
+- When you keep sampling variables, they will tend towards the mean, butvariability stays roughly the same because of an error parameter. (??)
+
+## The Null
+
+People in Gov1006 sit randomly.
+
+--> Picking new variables is dangerous because we can pick any given observable characteristic. Can result in stastistically significant patterns in the noise. 
+
+## Treatment Effect of Women:
 
 ```{r tools}
 # Before we run the simulation, we need the basic data and some simple
@@ -70,20 +79,20 @@ calc_clumped_tables <- function(seating){
   # be good!
   
   clumps <- 
-    (sum(plan[1:4] == "F") %in% c(0, 4)) +
-    (sum(plan[5:8] == "F") %in% c(0, 4)) +
-    (sum(plan[9:12] == "F") %in% c(0, 4)) +
-    (sum(plan[13:16] == "F") %in% c(0, 4)) +
-    (sum(plan[17:20] == "F") %in% c(0, 4)) +
-    (sum(plan[21:24] == "F") %in% c(0, 4)) +
-    (sum(plan[25:28] == "F") %in% c(0, 4))
+    (sum(plan[1:4] == "F") %in% c(4)) +
+    (sum(plan[5:8] == "F") %in% c(4)) +
+    (sum(plan[9:12] == "F") %in% c(4)) +
+    (sum(plan[13:16] == "F") %in% c(4)) +
+    (sum(plan[17:20] == "F") %in% c(4)) +
+    (sum(plan[21:24] == "F") %in% c(4)) +
+    (sum(plan[25:28] == "F") %in% c(4))
   
   return(clumps)
 }
 
 ```
 
-```{r sim, cache = TRUE}
+```{r sim}
 # Those are all the tools we need. Many/most of my simulations use the tricks we
 # learned in Gov 1005: list-colums and map_* functions are your friends!
 # https://davidkane9.github.io/PPBDS/6-functions.html#list-columns-and-map_-functions
@@ -101,22 +110,10 @@ sim_clumps <- sim %>%
   group_by(clumps) %>% 
   count() %>% 
   mutate(clumps_prop = (n/10000)*100)
-
-# 2.88% of the time we get 3 single gender clumped tables. This is below the
-# statistically significant level of 5%, so we would reject the null hypothesis.
-# If it were 6% (since we can never accept a null hypothesis) we simply fail to
-# reject it.
-  # We can calculate p-values: 
-
-
-
-
-# prop.table(table(clumps = sim_clumps$clumps, props = sim_clumps$n))
-# This did not work
-
 ```
 
-```{r graphics, cache = TRUE}
+
+```{r graphics}
 # Once we have the data, plotting is straightforward. The ..prop.. trick
 # required some Googling. Of course, I could just have calculated the
 # percentages by hand.
@@ -125,13 +122,41 @@ sim %>%
   ggplot() + 
     geom_bar(mapping = aes(x = clumps, y = ..prop..), 
              width = 0.1) +
-    labs(title = "Gender Clumping in Gov 1006",
-         subtitle = "Having three single-gender tables is surprising",
+    labs(title = "Women Clumping in Gov 1006",
+         subtitle = "Roughly 25% of simulations have 1 single gender tables",
          caption = "Data Collected in Gov 1006 on 2020-02-12",
-         x = "Number of Single-Gender Tables out of Seven",
-         y = "Percentage of Simulations out of 10,000")
+         x = "Number of Female-Only Tables out of Seven",
+         y = "Percentage of Simulations out of 10,000") +
+  theme_clean()
 ```
 
 
+## Grade Adjustment on Midterms
 
+```{r midterm complaints}
+
+# Grade adjustment on midterms and grade improvements in students' grades
+
+# -Treatment: giving the break = adjust grades
+    # Counterfactual = not adjusting grades --> can't see the causal effect of this
+    # Factual = adjusting grades --> can see the causal effect
+
+    # Effect = difference between performance when given or not given treatment
+
+# Outcome: better future grades? 
+
+# Causal inference? 
+
+# Is this really causal or is this selection bias?
+
+
+n <- 1000
+
+midterm_grade <- rnorm(n, 50,10)
+
+treat <- rbinom(1,1,0.5)
+
+
+
+```
 
